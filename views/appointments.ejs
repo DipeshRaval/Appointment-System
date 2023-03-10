@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="csrf-token" content="<%= csrfToken %>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appointments</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+    <script>
+      const token = document
+        .querySelector("meta[name='csrf-token']")
+        .getAttribute("content");
+
+      const deleteTodo = (id) => {
+        fetch(`/appointment/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            _csrf: token,
+          }),
+        })
+          .then((res) => {
+            if (res.ok) {
+              window.location.reload();
+            }
+          })
+          .catch(err);
+        {
+          console.log(err);
+        }
+      };
+    </script>
+  </head>
+  <body class="bg-gray-800">
+    <div class="grid grid-cols-6">
+      <div class="col-span-2 col-start-3">
+        <div class="text-center">
+          <%- include("header.ejs") %>
+        </div>
+
+        <% if(messages.success){ %>
+          <div class="alert alert-success" role="alert">
+              <%= messages.success %>
+          </div>
+        <% } %>
+
+        <div class="flex mb-3 items-center justify-between">
+          <div><p class="text-2xl font-semibold text-yellow-300">Welcome <%= user %> !!!</p></div>
+          <Button class="text-white mx-2 px-3 font-semibold py-2 rounded bg-red-600">
+            <a href="/signout">SignOut</a>
+          </Button>
+        </div>
+
+        <% if(messages && messages.error && messages.error.length > 0)  { %>
+          <% for(var i=0; i<messages.error.length; i++) { %>
+            <li class="mb-2 text-cyan-200"> <%= messages.error[i] %></li>
+          <% } %>
+        <% } %>
+
+        <form action="/appointments" method="post" class="mb-3">
+          <input type="hidden" name="_csrf" value="<%=csrfToken%>" />
+          <div>
+            <div class="mb-2">
+              <label for="appointmentName">Appointment Name :</label>
+              <input
+                type="text"
+                id="appointmentName"
+                name="appointmentName"
+                placeholder="Name of Appointment"
+                class="rounded border-2 text-gray-900 border-gray-900 my-1 w-full p-2 text-sm"
+              />
+            </div>
+            <div class="mb-2">
+              <label for="dueDate" class="mb-1">Appointment Date :</label>
+              <input
+                name="dueDate"
+                id="dueDate"
+                type="date"
+                class="rounded border-2 text-gray-900 border-gray-900 my-1 w-full p-2 text-sm leading-4"
+              />
+            </div>
+            <div class="mb-2">
+              <label for="startTime" class="mb-1">Start Time :</label>
+              <input
+                name="startTime"
+                id="startTime"
+                type="time"
+                class="rounded border-2 text-gray-900 border-gray-900 my-1 w-full p-2 text-sm leading-4"
+              />
+            </div>
+            <div class="mb-2">
+              <label for="endTime" class="mb-1">End Time :</label>
+              <input
+                name="endTime"
+                id="endTime"
+                type="time"
+                class="rounded border-2 text-gray-900 border-gray-900 my-1 w-full p-2 text-sm leading-4"
+              />
+            </div>
+            <div class="">
+              <input
+                type="submit"
+                value="Add Appointment"
+                class="text-white px-3 py-2 rounded my-1 bg-pink-600"
+              />
+            </div>
+          </div>
+        </form>
+
+        <h5 class="text-2xl font-semibold text-orange-300 mt-2"> Appointments List <span class="bg-gray-100 text-gray-700 text-sm ml-2 px-2"><%= allAppointment.length %> Appointments</span></h5>
+        <div>
+          <ol class="list-decimal	">
+            <% for(let i = 0; i < allAppointment.length; i++) { %>
+            <li class="ml-6 py-1 px-2 appointment w-fit hover:bg-gray-600 my-1 rounded curser-pointer">
+              <div
+                class="flex items-center bg-rounded"
+              >
+                <p class="text-blue-400 font-semibold text-md"><%= allAppointment[i].name %> : </p>
+                <p class="mx-2"><%= allAppointment[i].dueDate %></p>
+                <p class="mx-1 text-orange-400">Time : <%= allAppointment[i].startTime %> to <%= allAppointment[i].endTime %></p>
+
+                <button
+                type="button"
+                class="px-2 py-1 ml-2 text-sm text-black rounded font-semibold  bg-blue-400 border-gray-900"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal<%=allAppointment[i].id %>"
+                >
+                  Edit
+                </button>
+
+                <div
+                class="modal fade"
+                id="exampleModal<%=allAppointment[i].id %>"
+                tabindex="-1"
+                aria-labelledby="exampleModalLabel"
+                aria-hidden="true"
+              >
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h1 class="modal-title text-black fs-5" id="exampleModalLabel">
+                        Modify Appointment
+                      </h1>
+                      <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+                    <div class="modal-body text-black">
+                      <form method="post" action="/modify/appointment/<%= allAppointment[i].id %>">
+                        <input type="hidden" name="_csrf" value="<%=csrfToken%>" />
+                        <div class="mb-3">
+                          <label for="recipient-name<%= allAppointment[i].id %>" class="col-form-label"
+                            >Appointment Name :</label
+                          >
+                          <input
+                            type="text"
+                            class="form-control border-2 border-gray-900"
+                            id="recipient-name<%= allAppointment[i].id %>"
+                            name="appointmentName"
+                            value="<%= allAppointment[i].name %>"
+                            required
+                          />
+                        </div>
+                        <input
+                          type="submit"
+                          class="px-2 py-1 ml-2 text-sm bg-blue-400 border-2 border-gray-900"
+                        >
+                        </input>
+                      </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button
+                        type="button"
+                        class="px-2 text-black py-1 ml-2 text-sm bg-blue-400 border-2 border-gray-900"
+                        data-bs-dismiss="modal"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+                <a
+                  href="#"
+                  class="ml-2 hidden trashIcone font-semibold"
+                  onclick="deleteTodo(<%=allAppointment[i].id%>)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="w-4 h-4"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </li>
+            <% } %>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+    crossorigin="anonymous"
+  ></script>
+  </body>
+</html>

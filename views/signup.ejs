@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="csrf-token" content="<%= csrfToken %>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-800 text-white">
+    <div class="grid grid-cols-6">
+      <div class="col-span-2 col-start-3">
+        <%- include("header.ejs") %>
+        <div class="flex mb-3 items-center justify-between">
+          <div><h6 class="text-xl">Sign Up as a new user</h6></div>
+          <Button class="text-white mx-2 px-5 py-2 rounded bg-pink-600">
+            <a href="/">Home</a>
+          </Button>
+        </div>
+
+        <% if(messages && messages.error && messages.error.length > 0)  { %>
+          <% for(var i=0; i<messages.error.length; i++) { %>
+            <li class="mb-2 text-rose-500"> <%= messages.error[i] %></li>
+          <% } %>
+        <% } %>
+        <form action="/users" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <div>
+            <label for="fname" class="py-1 text-xl"
+              >FirstName :</label
+            >
+            <input
+              type="text"
+              id="fname"
+              name="firstName"
+              class="w-full border text-gray-900 border-gray-600 rounded px-5 py-2 my-2"
+            />
+          </div>
+          <div>
+            <label for="lname" class="py-1 text-xl"
+              >Last Name :</label
+            >
+            <input
+              type="text"
+              id="lname"
+              name="lastName"
+              class="w-full border text-gray-900 border-gray-600 rounded px-5 py-2 my-2"
+            />
+          </div>
+          <div>
+            <label for="emailID" class="py-1 text-xl"
+              >Email :</label
+            >
+            <input
+              type="email"
+              id="emailID"
+              name="email"
+              class="w-full border text-gray-900 border-gray-600 rounded px-5 py-2 my-2"
+            />
+          </div>
+          <div>
+            <label for="pwd" class="py-1 text-xl"
+              >Password :</label
+            >
+            <input
+              type="password"
+              id="pwd"
+              name="password"
+              class="w-full border text-gray-900 border-gray-600 rounded px-5 py-2 my-2"
+            />
+          </div>
+          <div>
+            <input
+              type="submit"
+              value="Sign Up"
+              class="bg-pink-600 text-white px-5 py-2 rounded my-1"
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
