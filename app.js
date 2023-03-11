@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 const csrf = require("tiny-csrf");
 const bodyParser = require("body-parser");
 const path = require("path");
-const { response } = require("express");
+const { res } = require("express");
 
 //flash
 const flash = require("connect-flash");
@@ -19,6 +19,7 @@ const LocalStrategy = require("passport-local");
 const connectEnsureLogin = require("connect-ensure-login");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
+const { where } = require("sequelize");
 const saltRound = 10;
 
 app.use(
@@ -172,7 +173,7 @@ app.post(
 
       if (existAppointment) {
         req.flash("error", "This time slot is aleready booked...");
-        return res.redirect("/appointments");
+        return res.redirect(`/modifyListAppintment/${existAppointment.id}`);
       }
 
       await Appointment.addAppointment({
@@ -200,7 +201,7 @@ app.post(
         });
         return res.redirect("/appointments");
       } else {
-        return response.status(422).json(error);
+        return res.status(422).json(error);
       }
     }
   }
@@ -226,7 +227,7 @@ app.post(
       return res.redirect("/appointments");
     } catch (error) {
       console.log(error);
-      return response.status(422).json(error);
+      return res.status(422).json(error);
     }
   }
 );
@@ -245,7 +246,67 @@ app.delete(
       res.send(affectedRow ? true : false);
     } catch (error) {
       console.log(error);
-      return response.status(422).json(error);
+      return res.status(422).json(error);
+    }
+  }
+);
+
+app.get(
+  "/modifyListAppintment/:id",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (req, res) => {
+    try {
+      const existAppointment = await Appointment.findAppointment(
+        req.params.id,
+        req.user.id
+      );
+
+      if (req.accepts("html")) {
+        res.render("updateAppointments", {
+          appointment: existAppointment,
+          csrfToken: req.csrfToken(),
+        });
+      } else {
+        res.json({
+          appointment: existAppointment,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(422).json(error);
+    }
+  }
+);
+
+app.post(
+  "/appointment/:id/add/delete",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (req, res) => {
+    try {
+      if (req.body.appointmentName.trim().length < 5) {
+        req.flash(
+          "error",
+          "Appointment name length greater than or equal to 5"
+        );
+        return res.redirect(`/modifyListAppintment/${req.params.id}`);
+      }
+      await Appointment.delAppointment(req.params.id, req.user.id);
+
+      await Appointment.addAppointment({
+        name: req.body.appointmentName.trim(),
+        dueDate: req.body.dueDate,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime,
+        userId: req.user.id,
+      });
+      req.flash(
+        "success",
+        "Existing appointment deleted and new appointment added succesfully!!"
+      );
+      return res.redirect("/appointments");
+    } catch (error) {
+      console.log(error);
+      return res.status(422).json(error);
     }
   }
 );
@@ -328,7 +389,7 @@ app.post("/users", async (req, res) => {
       });
       return res.redirect("/signup");
     } else {
-      return response.status(422).json(error);
+      return res.status(422).json(error);
     }
   }
 });

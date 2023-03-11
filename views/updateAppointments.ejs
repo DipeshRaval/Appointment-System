@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="csrf-token" content="<%= csrfToken %>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appointments</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="bg-gray-800">
+    <div class="grid grid-cols-6">
+      <div class="col-span-2 col-start-3">
+        <div class="text-center text-2xl"><%- include("header.ejs") %></div>
+
+        <% if(messages && messages.error && messages.error.length > 0)  { %>
+          <% for(var i=0; i<messages.error.length; i++) { %>
+            <li class="mb-2 text-rose-500"> <%= messages.error[i] %></li>
+          <% } %>
+        <% } %>
+
+        <div class="flex mb-3 text-center items-center justify-between">
+          <div>
+            <p class="text-2xl font-semibold text-yellow-300">
+              Add a New Appointment and delete a existing Apoointment
+            </p>
+            <span class="text-gray-400">Note : To add a new Appointment fill data in below form ...</span>
+          </div>
+        </div>
+
+        <form action="/appointment/<%= appointment.id %>/add/delete" method="post" class="mb-3">
+          <input type="hidden" name="_csrf" value="<%=csrfToken%>" />
+          <div>
+            <div class="mb-2">
+              <label for="appointmentName">Existing Apoointment Name :</label>
+              <input
+                type="text"
+                id="appointmentName"
+                name="appointmentName"
+                value="<%= appointment.name %>"
+                placeholder="Name of Appointment"
+                class="rounded border-2 text-gray-900 border-gray-900 my-1 w-full p-2 text-sm"
+              />
+            </div>
+            <div class="mb-2">
+              <label for="dueDate" class="mb-1"
+                >Existing Apoointment Date :</label
+              >
+              <input
+                name="dueDate"
+                id="dueDate"
+                type="date"
+                readonly
+                value="<%= appointment.dueDate %>"
+                class="rounded border-2 text-gray-900 border-gray-900 my-1 w-full p-2 text-sm leading-4"
+              />
+            </div>
+            <div class="mb-2">
+              <label for="startTime" class="mb-1"
+                >Existing Apoointment Start Time :</label
+              >
+              <input
+                name="startTime"
+                id="startTime"
+                type="time"
+                value="<%= appointment.startTime %>"
+                readonly
+                class="rounded border-2 text-gray-900 border-gray-900 my-1 w-full p-2 text-sm leading-4"
+              />
+            </div>
+            <div class="mb-2">
+              <label for="endTime" class="mb-1"
+                >Existing Apoointment End Time :</label
+              >
+              <input
+                name="endTime"
+                id="endTime"
+                type="time"
+                value="<%= appointment.endTime %>"
+                class="rounded border-2 text-gray-900 border-gray-900 my-1 w-full p-2 text-sm leading-4"
+                readonly
+              />
+            </div>
+            <div class="flex">
+              <input
+                type="submit"
+                value="Add & Delete"
+                class="text-white px-3 py-2 rounded my-1 bg-pink-600 hover:bg-pink-800"
+              />
+
+              <a href="/appointments" type="reset"
+              class="text-white bg-red-600 hover:bg-red-800 mx-2 px-3 py-2 rounded my-1 bg-pink-600"">
+              Cancel
+            </a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
