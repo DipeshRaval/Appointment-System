@@ -59,6 +59,13 @@ describe("Test case for database", () => {
     expect(res.statusCode).toBe(302);
   });
 
+  test("should get all apointments", async () => {
+    var agent = request.agent(server);
+    await login(agent, "dipu@gmail.com", "dipu");
+    var res = await agent.get("/appointments");
+    expect(res.statusCode).toBe(200);
+  });
+
   test("Creates a appointment", async () => {
     var agent = request.agent(server);
     await login(agent, "dipu@gmail.com", "dipu");
@@ -74,7 +81,47 @@ describe("Test case for database", () => {
     expect(response.statusCode).toBe(302);
   });
 
-  test("Deletes a todo with the given ID if it exists and sends a boolean response", async () => {
+  test("Modify a appointment", async () => {
+    var agent = request.agent(server);
+    await login(agent, "dipu@gmail.com", "dipu");
+    var res = await agent.get("/appointments");
+    var csrfToken = getCsrfToken(res);
+    await agent.post("/appointments").send({
+      appointmentName: "DIPESH Shah",
+      dueDate: new Date().toISOString(),
+      startTime: "06:11:00",
+      endTime: "07:11:00",
+      _csrf: csrfToken,
+    });
+
+    res = await agent.get("/appointments").set("Accept", "application/json");
+    const parseAppointments = JSON.parse(res.text);
+    const appointment =
+      parseAppointments.allAppointment[
+        parseAppointments.allAppointment.length - 1
+      ];
+
+    res = await agent.get("/appointments");
+    csrfToken = getCsrfToken(res);
+
+    res = await agent.post(`/modify/appointment/${appointment.id}`).send({
+      appointmentName: "Drvl Raval",
+      _csrf: csrfToken,
+    });
+
+    expect(res.statusCode).toBe(302);
+
+    res = await agent.get("/appointments").set("Accept", "application/json");
+    var ParseAppointments = JSON.parse(res.text);
+    var updateAppointment =
+      ParseAppointments.allAppointment[
+        ParseAppointments.allAppointment.length - 1
+      ];
+
+    expect(updateAppointment.name).toBe("Drvl Raval");
+  });
+
+  test("Deletes a appointment with the given ID if it exists and sends a boolean response", async () => {
     var agent = request.agent(server);
     await login(agent, "dipu@gmail.com", "dipu");
     var res = await agent.get("/appointments");
