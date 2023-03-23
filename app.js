@@ -6,7 +6,6 @@ const cookieParser = require("cookie-parser");
 const csrf = require("tiny-csrf");
 const bodyParser = require("body-parser");
 const path = require("path");
-const { res } = require("express");
 
 //flash
 const flash = require("connect-flash");
@@ -149,24 +148,18 @@ app.post(
   async (req, res) => {
     console.log("Body : ", req.body);
     console.log(req.user);
-    if (req.body.startTime.length == 0 || req.body.endTime.length == 0) {
-      req.flash("error", "Time can not be empty!!");
-      return res.redirect("/appointments");
-    }
-    if (req.body.startTime > req.body.endTime) {
-      req.flash("error", "provide a valid Time for appointment");
-      return res.redirect("/appointments");
-    }
 
     try {
       const name = req.body.appointmentName;
       console.log(name.trim().length);
+      const time = req.body.time.split(" - ");
+      const [startTime, endTime] = time;
 
       const existAppointment = await Appointment.findOne({
         where: {
           dueDate: req.body.dueDate,
-          startTime: req.body.startTime,
-          endTime: req.body.endTime,
+          startTime: startTime,
+          endTime: endTime,
           userId: req.user.id,
         },
       });
@@ -179,8 +172,8 @@ app.post(
       await Appointment.addAppointment({
         name: name.trim(),
         dueDate: req.body.dueDate,
-        startTime: req.body.startTime,
-        endTime: req.body.endTime,
+        startTime: startTime,
+        endTime: endTime,
         userId: req.user.id,
       });
       return res.redirect("/appointments");
