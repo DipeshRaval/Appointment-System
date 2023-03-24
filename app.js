@@ -119,7 +119,6 @@ app.get(
   "/appointments",
   connectEnsureLogin.ensureLoggedIn(),
   async (req, res) => {
-    // const loginUserId = req.user.id;
     console.log(req.user);
     console.log(req.user.id);
     console.log(req.user.firstName);
