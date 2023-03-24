@@ -24,6 +24,13 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
+    static getTodayEvent(dueDate, userId) {
+      return this.findAll({
+        where: { dueDate, userId },
+        order: [["id", "ASC"]],
+      });
+    }
+
     static getAppointments(userId) {
       return this.findAll({
         where: { userId },

@@ -148,18 +148,24 @@ app.post(
   async (req, res) => {
     console.log("Body : ", req.body);
     console.log(req.user);
+    if (req.body.startTime.length == 0 || req.body.endTime.length == 0) {
+      req.flash("error", "Time can not be empty!!");
+      return res.redirect("/appointments");
+    }
+    if (req.body.startTime > req.body.endTime) {
+      req.flash("error", "provide a valid Time for appointment");
+      return res.redirect("/appointments");
+    }
 
     try {
       const name = req.body.appointmentName;
       console.log(name.trim().length);
-      const time = req.body.time.split(" - ");
-      const [startTime, endTime] = time;
 
-      const existAppointment = await Appointment.findOne({
+      let existAppointment = await Appointment.findOne({
         where: {
           dueDate: req.body.dueDate,
-          startTime: startTime,
-          endTime: endTime,
+          startTime: req.body.startTime,
+          endTime: req.body.endTime,
           userId: req.user.id,
         },
       });
@@ -169,11 +175,31 @@ app.post(
         return res.redirect(`/modifyListAppintment/${existAppointment.id}`);
       }
 
+      const allTodayEvent = await Appointment.getTodayEvent(
+        req.body.dueDate,
+        req.user.id
+      );
+
+      for (let i = 0; i < allTodayEvent.length; i++) {
+        const existAppointment = allTodayEvent[i];
+        if (
+          (existAppointment.startTime < req.body.startTime &&
+            existAppointment.endTime > req.body.endTime) ||
+          (existAppointment.startTime < req.body.startTime &&
+            existAppointment.endTime > req.body.startTime) ||
+          (existAppointment.startTime < req.body.endTime &&
+            existAppointment.endTime > req.body.endTime)
+        ) {
+          req.flash("error", "This time slot is aleready booked...");
+          return res.redirect(`/modifyListAppintment/${existAppointment.id}`);
+        }
+      }
+
       await Appointment.addAppointment({
         name: name.trim(),
         dueDate: req.body.dueDate,
-        startTime: startTime,
-        endTime: endTime,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime,
         userId: req.user.id,
       });
       return res.redirect("/appointments");
